@@ -67,6 +67,12 @@ if [ -z "${LAMBDA_ROLE_ARN}" ]; then
     fi
 fi
 
+# Validate Lambda role ARN format
+if ! [[ "${LAMBDA_ROLE_ARN}" =~ ^arn:aws:iam::[0-9]{12}:role/.+ ]]; then
+    echo -e "${RED}Error: LAMBDA_ROLE_ARN is not a valid IAM role ARN${NC}"
+    echo "Expected format: arn:aws:iam::123456789012:role/YourRoleName"
+    exit 1
+fi
 echo -e "${GREEN}✓ Lambda Role: ${LAMBDA_ROLE_ARN}${NC}"
 
 # Build the deployment package
