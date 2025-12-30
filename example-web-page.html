@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC2 Instance Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-change {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .status {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #0c5460;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0d47a1;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ EC2 Instance Manager</h1>
+        <p class="subtitle">Control your AWS EC2 instances</p>
+
+        <div class="info-box">
+            <strong>⚙️ Configuration Required:</strong>
+            Update the <code>LAMBDA_ENDPOINT</code> variable in the JavaScript code with your Lambda Function URL or API Gateway endpoint.
+        </div>
+
+        <div class="form-group">
+            <label for="instanceId">Instance ID</label>
+            <input 
+                type="text" 
+                id="instanceId" 
+                placeholder="e.g., i-1234567890abcdef0"
+                value="i-1234567890abcdef0"
+            >
+        </div>
+
+        <div class="form-group" id="instanceTypeGroup" style="display: none;">
+            <label for="instanceType">New Instance Type</label>
+            <select id="instanceType">
+                <option value="">Select instance type...</option>
+                <optgroup label="General Purpose">
+                    <option value="t3.micro">t3.micro</option>
+                    <option value="t3.small">t3.small</option>
+                    <option value="t3.medium">t3.medium</option>
+                    <option value="t3.large">t3.large</option>
+                    <option value="t3.xlarge">t3.xlarge</option>
+                    <option value="t3.2xlarge">t3.2xlarge</option>
+                </optgroup>
+                <optgroup label="Compute Optimized">
+                    <option value="c5.large">c5.large</option>
+                    <option value="c5.xlarge">c5.xlarge</option>
+                    <option value="c5.2xlarge">c5.2xlarge</option>
+                </optgroup>
+                <optgroup label="Memory Optimized">
+                    <option value="r5.large">r5.large</option>
+                    <option value="r5.xlarge">r5.xlarge</option>
+                    <option value="r5.2xlarge">r5.2xlarge</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="button-grid">
+            <button class="btn-start" onclick="performAction('start')">▶️ Start</button>
+            <button class="btn-stop" onclick="performAction('stop')">⏹️ Stop</button>
+            <button class="btn-restart" onclick="performAction('restart')">🔄 Restart</button>
+            <button class="btn-change" onclick="showInstanceTypeField()">⚙️ Change Type</button>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace this with your actual Lambda Function URL or API Gateway endpoint
+        const LAMBDA_ENDPOINT = 'https://YOUR_LAMBDA_URL_HERE.lambda-url.us-east-1.on.aws/';
+
+        let isChangingType = false;
+
+        function showInstanceTypeField() {
+            const group = document.getElementById('instanceTypeGroup');
+            if (group.style.display === 'none') {
+                group.style.display = 'block';
+                isChangingType = true;
+            } else {
+                const instanceType = document.getElementById('instanceType').value;
+                if (!instanceType) {
+                    showStatus('Please select an instance type', 'error');
+                    return;
+                }
+                performAction('change_type', instanceType);
+            }
+        }
+
+        async function performAction(action, instanceType = null) {
+            const instanceId = document.getElementById('instanceId').value.trim();
+            
+            if (!instanceId) {
+                showStatus('Please enter an instance ID', 'error');
+                return;
+            }
+
+            if (action === 'change_type' && !instanceType) {
+                showStatus('Please select an instance type', 'error');
+                return;
+            }
+
+            // Validate instance ID format
+            if (!instanceId.match(/^i-[a-f0-9]{8,17}$/)) {
+                showStatus('Invalid instance ID format. Should be like: i-1234567890abcdef0', 'error');
+                return;
+            }
+
+            // Disable all buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Show loading status
+            showStatus(`Processing ${action} request...`, 'loading');
+
+            const payload = {
+                action: action,
+                instance_id: instanceId
+            };
+
+            if (instanceType) {
+                payload.instance_type = instanceType;
+            }
+
+            try {
+                const response = await fetch(LAMBDA_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showStatus(`✅ ${result.message}`, 'success');
+                    if (isChangingType) {
+                        document.getElementById('instanceTypeGroup').style.display = 'none';
+                        isChangingType = false;
+                    }
+                } else {
+                    showStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Request failed: ${error.message}`, 'error');
+            } finally {
+                // Re-enable buttons
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            
+            if (type === 'loading') {
+                statusDiv.innerHTML = `<span class="spinner"></span>${message}`;
+            } else {
+                statusDiv.textContent = message;
+            }
+            
+            statusDiv.style.display = 'block';
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

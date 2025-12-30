@@ -7,6 +7,9 @@
 *.dll
 *.so
 *.dylib
+ec2_manager
+bootstrap
+ec2_manager.zip
 
 # Test binary, built with `go test -c`
 *.test
