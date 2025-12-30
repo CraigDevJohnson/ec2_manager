@@ -22,7 +22,7 @@
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:*:*:*"
+      "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/ec2-manager:*"
     }
   ]
 }
