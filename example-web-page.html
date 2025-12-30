@@ -264,7 +264,7 @@
             }
 
             // Validate instance ID format
-            if (!instanceId.match(/^i-[a-f0-9]{8,17}$/)) {
+            if (!instanceId.match(/^i-[a-fA-F0-9]{8,17}$/)) {
                 showStatus('Invalid instance ID format. Should be like: i-1234567890abcdef0', 'error');
                 return;
             }
