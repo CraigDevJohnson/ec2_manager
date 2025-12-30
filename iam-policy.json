@@ -10,7 +10,9 @@
         "ec2:DescribeInstances",
         "ec2:ModifyInstanceAttribute"
       ],
-      "Resource": "*"
+      // For production, replace the placeholder below with specific instance ARNs
+      // or use condition keys like "ec2:ResourceTag" to scope access to tagged instances.
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:instance/INSTANCE_ID"
     },
     {
       "Sid": "CloudWatchLogsPermissions",
