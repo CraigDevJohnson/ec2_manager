@@ -63,7 +63,7 @@ The Lambda function returns a JSON response:
 
 ### Prerequisites
 
-- Go 1.24+ installed
+- Go 1.22+ installed
 - AWS credentials configured (for testing with real AWS resources)
 - `make` utility (optional, but recommended)
 
