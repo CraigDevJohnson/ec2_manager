@@ -1,0 +1,28 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EC2ManagementPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:DescribeInstances",
+        "ec2:ModifyInstanceAttribute"
+      ],
+      "Resource": "*",
+      "_comment": "SECURITY: For production, replace '*' with specific instance ARNs (arn:aws:ec2:REGION:ACCOUNT_ID:instance/INSTANCE_ID) or add a Condition with 'ec2:ResourceTag/ManagedBy': 'ec2-manager' to scope access to tagged instances only"
+    },
+    {
+      "Sid": "CloudWatchLogsPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/ec2-manager:*",
+      "_comment": "Restricted to the specific Lambda function log group for least privilege"
+    }
+  ]
+}
