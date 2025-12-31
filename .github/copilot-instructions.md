@@ -136,7 +136,7 @@ This is a Go-based AWS Lambda function that manages EC2 instances through a web 
 - **Main functions**: `HandleRequest` (Lambda handler), `NewEC2Manager`, instance operation methods
 - **Tests**: `main_test.go` with table-driven tests
 
-## Future Enhancements
+## Future Enhancement Patterns
 When adding new features, maintain consistency with existing patterns:
 - Add new actions to the switch statement in `HandleRequest`
 - Add corresponding methods to `EC2Manager`
