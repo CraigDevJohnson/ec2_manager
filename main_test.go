@@ -188,7 +188,7 @@ func TestValidationOnly(t *testing.T) {
 			} else if tt.request.Action == "" {
 				valid = false
 				errorMsg = "action is required"
-			} else if tt.request.Action != "start" && tt.request.Action != "stop" && 
+			} else if tt.request.Action != "start" && tt.request.Action != "stop" &&
 				tt.request.Action != "restart" && tt.request.Action != "change_type" {
 				valid = false
 				errorMsg = "unknown action"
