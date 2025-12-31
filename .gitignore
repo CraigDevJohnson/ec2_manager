@@ -10,6 +10,7 @@
 ec2_manager
 bootstrap
 ec2_manager.zip
+ec2_manager-arm64.zip
 
 # Test binary, built with `go test -c`
 *.test
