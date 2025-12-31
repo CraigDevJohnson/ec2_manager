@@ -1,6 +1,8 @@
 module github.com/CraigDevJohnson/ec2_manager
 
-go 1.24.11
+go 1.23
+
+toolchain go1.24.11
 
 require (
 	github.com/aws/aws-lambda-go v1.51.1

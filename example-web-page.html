@@ -172,6 +172,22 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #d84315;
+        }
     </style>
 </head>
 <body>
@@ -179,9 +195,14 @@
         <h1>🖥️ EC2 Instance Manager</h1>
         <p class="subtitle">Control your AWS EC2 instances</p>
 
+        <div class="warning-box">
+            <strong>⚠️ SECURITY WARNING - AUTHENTICATION REQUIRED:</strong>
+            This page has NO authentication mechanism. Do NOT deploy to production without implementing proper authentication and authorization. Any user who visits this page can control EC2 instances, which is a critical security vulnerability. Integrate with AWS Cognito, API Gateway authorizers, or another authentication service before deploying.
+        </div>
+
         <div class="info-box">
             <strong>⚙️ Configuration Required:</strong>
-            Update the <code>LAMBDA_ENDPOINT</code> variable in the JavaScript code with your Lambda Function URL or API Gateway endpoint.
+            Update the <code>LAMBDA_ENDPOINT</code> variable in the JavaScript code with your Lambda Function URL or API Gateway endpoint. Ensure CORS is configured on the Lambda Function URL or API Gateway.
         </div>
 
         <div class="form-group">

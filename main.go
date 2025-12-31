@@ -22,9 +22,10 @@ type Request struct {
 
 // Response represents the Lambda response
 type Response struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Error   string `json:"error,omitempty"`
+	Success bool              `json:"success"`
+	Message string            `json:"message"`
+	Error   string            `json:"error,omitempty"`
+	Headers map[string]string `json:"-"` // Not included in JSON response but used by Lambda
 }
 
 // EC2Manager handles EC2 operations
@@ -88,15 +89,34 @@ func (m *EC2Manager) StopInstance(ctx context.Context, instanceID string) error 
 
 // RestartInstance restarts an EC2 instance (stop then start)
 func (m *EC2Manager) RestartInstance(ctx context.Context, instanceID string) error {
-	// First, stop the instance
-	if err := m.StopInstance(ctx, instanceID); err != nil {
-		return err
+	// Check current instance state
+	describeInput := &ec2.DescribeInstancesInput{
+		InstanceIds: []string{instanceID},
+	}
+
+	result, err := m.client.DescribeInstances(ctx, describeInput)
+	if err != nil {
+		return fmt.Errorf("failed to describe instance: %w", err)
+	}
+
+	if len(result.Reservations) == 0 || len(result.Reservations[0].Instances) == 0 {
+		return fmt.Errorf("instance %s not found", instanceID)
+	}
+
+	instance := result.Reservations[0].Instances[0]
+	currentState := instance.State.Name
+
+	// Only stop if not already stopped
+	if currentState != types.InstanceStateNameStopped && currentState != types.InstanceStateNameStopping {
+		if err := m.StopInstance(ctx, instanceID); err != nil {
+			return err
+		}
 	}
 
 	// Wait for instance to be stopped
 	log.Printf("Waiting for instance %s to stop...", instanceID)
 	waiter := ec2.NewInstanceStoppedWaiter(m.client)
-	maxWaitTime := 5 * time.Minute
+	maxWaitTime := 4 * time.Minute
 	if err := waiter.Wait(ctx, &ec2.DescribeInstancesInput{
 		InstanceIds: []string{instanceID},
 	}, maxWaitTime); err != nil {
@@ -136,7 +156,7 @@ func (m *EC2Manager) ChangeInstanceType(ctx context.Context, instanceID, newInst
 
 		// Wait for instance to be stopped
 		waiter := ec2.NewInstanceStoppedWaiter(m.client)
-		maxWaitTime := 5 * time.Minute
+		maxWaitTime := 4 * time.Minute
 		if err := waiter.Wait(ctx, &ec2.DescribeInstancesInput{
 			InstanceIds: []string{instanceID},
 		}, maxWaitTime); err != nil {
@@ -166,12 +186,20 @@ func HandleRequest(ctx context.Context, request Request) (Response, error) {
 	log.Printf("Received request: action=%s, instance_id=%s, instance_type=%s",
 		request.Action, request.InstanceID, request.InstanceType)
 
+	// CORS headers for all responses
+	corsHeaders := map[string]string{
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "POST, OPTIONS",
+		"Access-Control-Allow-Headers": "Content-Type",
+	}
+
 	// Validate request
 	if request.InstanceID == "" {
 		return Response{
 			Success: false,
 			Message: "Validation failed",
 			Error:   "instance_id is required",
+			Headers: corsHeaders,
 		}, nil
 	}
 
@@ -180,6 +208,7 @@ func HandleRequest(ctx context.Context, request Request) (Response, error) {
 			Success: false,
 			Message: "Validation failed",
 			Error:   "action is required",
+			Headers: corsHeaders,
 		}, nil
 	}
 
@@ -190,7 +219,8 @@ func HandleRequest(ctx context.Context, request Request) (Response, error) {
 			Success: false,
 			Message: "Failed to initialize EC2 manager",
 			Error:   err.Error(),
-		}, nil
+			Headers: corsHeaders,
+		}, fmt.Errorf("failed to initialize EC2 manager: %w", err)
 	}
 
 	// Execute the requested action
@@ -216,6 +246,7 @@ func HandleRequest(ctx context.Context, request Request) (Response, error) {
 				Success: false,
 				Message: "Validation failed",
 				Error:   "instance_type is required for change_type action",
+				Headers: corsHeaders,
 			}, nil
 		}
 		actionErr = manager.ChangeInstanceType(ctx, request.InstanceID, request.InstanceType)
@@ -226,6 +257,7 @@ func HandleRequest(ctx context.Context, request Request) (Response, error) {
 			Success: false,
 			Message: "Invalid action",
 			Error:   fmt.Sprintf("unknown action: %s. Valid actions are: start, stop, restart, change_type", request.Action),
+			Headers: corsHeaders,
 		}, nil
 	}
 
@@ -234,12 +266,14 @@ func HandleRequest(ctx context.Context, request Request) (Response, error) {
 			Success: false,
 			Message: fmt.Sprintf("Failed to execute action: %s", request.Action),
 			Error:   actionErr.Error(),
+			Headers: corsHeaders,
 		}, nil
 	}
 
 	return Response{
 		Success: true,
 		Message: message,
+		Headers: corsHeaders,
 	}, nil
 }
 

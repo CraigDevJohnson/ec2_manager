@@ -115,6 +115,9 @@ func TestResponseStructure(t *testing.T) {
 	response := Response{
 		Success: true,
 		Message: "Operation successful",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
 	}
 
 	if !response.Success {
@@ -127,6 +130,10 @@ func TestResponseStructure(t *testing.T) {
 
 	if response.Error != "" {
 		t.Errorf("Expected Error to be empty, got '%s'", response.Error)
+	}
+
+	if response.Headers == nil {
+		t.Errorf("Expected Headers to be initialized")
 	}
 }
 

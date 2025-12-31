@@ -63,7 +63,7 @@ The Lambda function returns a JSON response:
 
 ### Prerequisites
 
-- Go 1.22+ installed
+- Go 1.21+ installed
 - AWS credentials configured (for testing with real AWS resources)
 - `make` utility (optional, but recommended)
 
@@ -74,6 +74,8 @@ make build
 ```
 
 This creates a `bootstrap` binary compiled for Linux AMD64 (Lambda's runtime environment) and packages it into `ec2_manager.zip` ready for Lambda deployment.
+
+**Note**: AWS Lambda also supports ARM64 (Graviton2) which offers better price-performance. To build for ARM64, modify the Makefile `build` target to use `GOARCH=arm64` and change the runtime to `provided.al2023` in the deployment.
 
 ### Build for Local Testing
 
@@ -154,12 +156,17 @@ make clean
      --runtime provided.al2 \
      --role arn:aws:iam::YOUR_ACCOUNT:role/YOUR_LAMBDA_ROLE \
      --handler bootstrap \
+     --timeout 360 \
      --zip-file fileb://ec2_manager.zip
    ```
+
+   **Important**: Set the Lambda timeout to at least 360 seconds (6 minutes) to accommodate instance state transitions, which use 4-minute waiters internally.
 
 3. Configure the Lambda function with appropriate IAM permissions (see below)
 
 4. Set up an API Gateway or Lambda Function URL to make it accessible from your Amplify web application
+
+5. **Configure CORS**: If using Lambda Function URL, enable CORS in the function configuration. If using API Gateway, configure CORS settings to allow requests from your Amplify domain. The Lambda function returns appropriate CORS headers in responses.
 
 ### Required IAM Permissions
 
