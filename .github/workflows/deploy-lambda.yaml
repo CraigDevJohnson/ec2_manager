@@ -38,5 +38,39 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to Lambda
+        env:
+          LAMBDA_ROLE_ARN: ${{ secrets.LAMBDA_ROLE_ARN }}
+          FUNCTION_NAME: ec2-manager
+          RUNTIME: provided.al2023
+          TIMEOUT: 360
+          MEMORY: 256
         run: |
-          aws lambda update-function-code --function-name ec2-manager --zip-file fileb://function.zip
+          # Check if Lambda function exists
+          if aws lambda get-function --function-name ${FUNCTION_NAME} --region us-east-1 2>/dev/null; then
+            echo "Function exists, updating code..."
+            aws lambda update-function-code \
+              --function-name ${FUNCTION_NAME} \
+              --zip-file fileb://function.zip \
+              --region us-east-1
+            
+            echo "Updating function configuration..."
+            aws lambda update-function-configuration \
+              --function-name ${FUNCTION_NAME} \
+              --timeout ${TIMEOUT} \
+              --memory-size ${MEMORY} \
+              --region us-east-1
+          else
+            echo "Function does not exist, creating..."
+            aws lambda create-function \
+              --function-name ${FUNCTION_NAME} \
+              --runtime ${RUNTIME} \
+              --role ${LAMBDA_ROLE_ARN} \
+              --handler bootstrap \
+              --timeout ${TIMEOUT} \
+              --memory-size ${MEMORY} \
+              --zip-file fileb://function.zip \
+              --region us-east-1 \
+              --architectures arm64
+          fi
+          
+          echo "Deployment successful!"
