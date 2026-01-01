@@ -74,7 +74,7 @@ jobs:
               --memory-size ${LAMBDA_MEMORY} \
               --zip-file fileb://function.zip \
               --region ${AWS_REGION} \
-              --architectures {LAMBDA_ARCH}
+              --architectures ${LAMBDA_ARCH}
           fi
           
           echo "Deployment successful!"
