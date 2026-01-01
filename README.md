@@ -144,6 +144,43 @@ make clean
 
 ## Deployment to AWS Lambda
 
+### Option 1: Automated Deployment via GitHub Actions
+
+The repository includes a GitHub Actions workflow that automatically deploys the Lambda function when changes are pushed to the `main` branch.
+
+**Prerequisites:**
+1. Add the following secrets in your GitHub repository settings (Settings → Secrets and variables → Actions):
+   - `AWS_ACCESS_KEY_ID`: Your AWS access key ID
+   - `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
+   - `LAMBDA_ROLE_ARN`: The ARN of the IAM role for Lambda execution (e.g., `arn:aws:iam::123456789012:role/lambda-ec2-manager-role`)
+
+2. Ensure the Lambda execution role has the required EC2 permissions (see "Required IAM Permissions" section below)
+
+**How it works:**
+- The workflow builds the Lambda binary for ARM64 (Graviton2)
+- Checks if the Lambda function exists
+- If it doesn't exist, creates a new function with proper configuration
+- If it exists, updates the function code and configuration
+- Automatically triggered on push to `main` or can be manually triggered via workflow_dispatch
+
+### Option 2: Manual Deployment using deploy.sh Script
+
+Use the provided deployment script for interactive deployment:
+
+```bash
+export LAMBDA_ROLE_ARN="arn:aws:iam::YOUR_ACCOUNT:role/YOUR_LAMBDA_ROLE"
+export AWS_REGION="us-east-1"  # optional, defaults to us-east-1
+./deploy.sh
+```
+
+The script will:
+- Check prerequisites (AWS CLI, Go, make)
+- Validate AWS credentials
+- Build the deployment package
+- Create or update the Lambda function as needed
+
+### Option 3: Manual Deployment via AWS CLI
+
 1. Build the deployment package:
    ```bash
    make build
