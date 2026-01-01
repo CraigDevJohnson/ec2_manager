@@ -10,7 +10,7 @@ env:
   LAMBDA_ARCH: arm64
   LAMBDA_FUNCTION_NAME: ec2-manager
   LAMBDA_MEMORY: 128
-  LAMDBDA_RUNTIME: provided.al2023
+  LAMBDA_RUNTIME: provided.al2023
   LAMBDA_TIMEOUT: 300
 
 permissions:
