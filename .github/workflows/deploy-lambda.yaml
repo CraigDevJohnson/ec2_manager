@@ -78,7 +78,7 @@ jobs:
                 echo "Lambda function is ready!"
                 return 0
               elif [ "$status" = "Failed" ]; then
-                echo "Previous Lambda update failed.  Proceeding with caution..."
+                echo "Previous Lambda update failed. Proceeding with caution..."
                 return 0
               fi
               
