@@ -35,7 +35,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: us-west-2
 
       - name: Deploy to Lambda
         env:
@@ -59,7 +59,7 @@ jobs:
               --timeout ${TIMEOUT} \
               --memory-size ${MEMORY} \
               --architectures arm64 \
-              --region us-east-1
+              --region us-west-2
           else
             echo "Function does not exist, creating..."
             aws lambda create-function \
@@ -70,7 +70,7 @@ jobs:
               --timeout ${TIMEOUT} \
               --memory-size ${MEMORY} \
               --zip-file fileb://function.zip \
-              --region us-east-1 \
+              --region us-west-2 \
               --architectures arm64
           fi
           
