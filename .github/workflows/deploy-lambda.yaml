@@ -46,7 +46,7 @@ jobs:
           MEMORY: 256
         run: |
           # Check if Lambda function exists
-          if aws lambda get-function --function-name ${FUNCTION_NAME} --region us-west-2 2>/dev/null; then
+          if aws lambda get-function --function-name ${FUNCTION_NAME} --region us-west-2 &>/dev/null; then
             echo "Function exists, updating code..."
             aws lambda update-function-code \
               --function-name ${FUNCTION_NAME} \
