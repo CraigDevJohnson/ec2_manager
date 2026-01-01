@@ -11,7 +11,7 @@ env:
   LAMBDA_FUNCTION_NAME: ec2-manager
   LAMBDA_MEMORY: 128
   LAMBDA_RUNTIME: provided.al2023
-  LAMBDA_TIMEOUT: 300
+  LAMBDA_TIMEOUT: 360
 
 permissions:
   id-token: write
