@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Lambda Binary
         run: |
-          # Output binary must be named 'bootstrap' for provided.al2023 runtime
+          # Output binary must be named 'bootstrap' for custom runtime
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o bootstrap main.go
 
       - name: Package Lambda
@@ -41,7 +41,7 @@ jobs:
         env:
           LAMBDA_ROLE_ARN: ${{ secrets.LAMBDA_ROLE_ARN }}
           FUNCTION_NAME: ec2-manager
-          RUNTIME: provided.al2023
+          RUNTIME: provided.al2
           TIMEOUT: 360
           MEMORY: 256
         run: |
@@ -58,6 +58,7 @@ jobs:
               --function-name ${FUNCTION_NAME} \
               --timeout ${TIMEOUT} \
               --memory-size ${MEMORY} \
+              --architectures arm64 \
               --region us-east-1
           else
             echo "Function does not exist, creating..."
