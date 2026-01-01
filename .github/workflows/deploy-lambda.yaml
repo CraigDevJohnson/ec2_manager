@@ -62,7 +62,7 @@ jobs:
               status=$(aws lambda get-function \
                 --function-name ${function_name} \
                 --region ${AWS_REGION} \
-                --query 'Configuration. LastUpdateStatus' \
+                --query 'Configuration.LastUpdateStatus' \
                 --output text 2>/dev/null)
               
               state=$(aws lambda get-function \
