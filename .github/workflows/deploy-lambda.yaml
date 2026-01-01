@@ -61,8 +61,8 @@ jobs:
               --function-name ${LAMBDA_FUNCTION_NAME} \
               --timeout ${LAMBDA_TIMEOUT} \
               --memory-size ${LAMBDA_MEMORY} \
-              --architectures ${LAMBDA_ARCH} \
               --region ${AWS_REGION}
+
           else
             echo "Function does not exist, creating..."
             aws lambda create-function \
