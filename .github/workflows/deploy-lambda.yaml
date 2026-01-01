@@ -96,7 +96,7 @@ jobs:
             echo "Function exists, checking readiness..."
             
             # Wait for Lambda to be ready before updating
-            if !  wait_for_lambda_ready ${LAMBDA_FUNCTION_NAME}; then
+            if ! wait_for_lambda_ready ${LAMBDA_FUNCTION_NAME}; then
               echo "Error: Lambda function is not ready for updates after waiting"
               exit 1
             fi
