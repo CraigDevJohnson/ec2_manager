@@ -4,6 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  
+env:
+  AWS_REGION: us-west-2
+  LAMBDA_ARCH: arm64
+  LAMBDA_FUNCTION_NAME: ec2-manager
+  LAMBDA_MEMORY: 128
+  LAMBDA_RUNTIME: provided.al2023
+  LAMBDA_TIMEOUT: 360
 
 permissions:
   id-token: write
@@ -13,7 +21,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -23,7 +32,7 @@ jobs:
 
       - name: Build Lambda Binary
         run: |
-          # Output binary must be named 'bootstrap' for custom runtime
+          # Output binary must be named 'bootstrap' for provided.al2023 runtime
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o bootstrap main.go
 
       - name: Package Lambda
@@ -35,43 +44,37 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy to Lambda
-        env:
-          LAMBDA_ROLE_ARN: ${{ secrets.LAMBDA_ROLE_ARN }}
-          FUNCTION_NAME: ec2-manager
-          RUNTIME: provided.al2
-          TIMEOUT: 360
-          MEMORY: 256
         run: |
           # Check if Lambda function exists
-          if aws lambda get-function --function-name ${FUNCTION_NAME} --region us-west-2 &>/dev/null; then
+          if aws lambda get-function --function-name ${LAMBDA_FUNCTION_NAME} --region ${AWS_REGION} &>/dev/null; then
             echo "Function exists, updating code..."
             aws lambda update-function-code \
-              --function-name ${FUNCTION_NAME} \
+              --function-name ${LAMBDA_FUNCTION_NAME} \
               --zip-file fileb://function.zip \
-              --region us-west-2
+              --region ${AWS_REGION}
             
             echo "Updating function configuration..."
             aws lambda update-function-configuration \
-              --function-name ${FUNCTION_NAME} \
-              --timeout ${TIMEOUT} \
-              --memory-size ${MEMORY} \
-              --architectures arm64 \
-              --region us-west-2
+              --function-name ${LAMBDA_FUNCTION_NAME} \
+              --timeout ${LAMBDA_TIMEOUT} \
+              --memory-size ${LAMBDA_MEMORY} \
+              --architectures ${LAMBDA_ARCH} \
+              --region ${AWS_REGION}
           else
             echo "Function does not exist, creating..."
             aws lambda create-function \
-              --function-name ${FUNCTION_NAME} \
-              --runtime ${RUNTIME} \
-              --role ${LAMBDA_ROLE_ARN} \
+              --function-name ${LAMBDA_FUNCTION_NAME} \
+              --runtime ${LAMBDA_RUNTIME} \
+              --role ${{ secrets.LAMBDA_ROLE_ARN }} \
               --handler bootstrap \
-              --timeout ${TIMEOUT} \
-              --memory-size ${MEMORY} \
+              --timeout ${LAMBDA_TIMEOUT} \
+              --memory-size ${LAMBDA_MEMORY} \
               --zip-file fileb://function.zip \
-              --region us-west-2 \
-              --architectures arm64
+              --region ${AWS_REGION} \
+              --architectures ${LAMBDA_ARCH}
           fi
           
           echo "Deployment successful!"
