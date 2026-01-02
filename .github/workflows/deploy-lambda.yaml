@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  
+
 env:
   AWS_REGION: us-west-2
   LAMBDA_ARCH: arm64
@@ -30,14 +30,9 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: Build Lambda Binary
+      - name: Build and Package Lambda Binary
         run: |
-          # Output binary must be named 'bootstrap' for provided.al2023 runtime
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap ./cmd/lambda
-
-      - name: Package Lambda
-        run: |
-          zip function.zip bootstrap
+          make build-arm64
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5

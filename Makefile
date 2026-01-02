@@ -3,12 +3,12 @@
 # Build the binary for Lambda (Linux AMD64)
 build:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap main.go
-	zip ec2_manager.zip bootstrap
+	zip function.zip bootstrap
 
 # Build the binary for Lambda (Linux ARM64/Graviton2)
 build-arm64:
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o bootstrap main.go
-	zip ec2_manager-arm64.zip bootstrap
+	zip function.zip bootstrap
 
 # Build locally for testing
 build-local:
@@ -16,7 +16,7 @@ build-local:
 
 # Clean build artifacts
 clean:
-	rm -f bootstrap ec2_manager ec2_manager.zip ec2_manager-arm64.zip
+	rm -f bootstrap ec2_manager ec2_manager.zip ec2_manager-arm64.zip function.zip coverage.out coverage.html
 
 # Run tests
 test:
