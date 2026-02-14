@@ -166,3 +166,7 @@ When adding new features, maintain consistency with existing patterns:
 - Pin major versions in `go.mod`
 - Update AWS SDK cautiously and test thoroughly
 - Use `make deps` to install and tidy dependencies
+
+## Known Errors and Workarounds
+- **`make lint` fails with `golangci-lint not installed`**: Install `golangci-lint` locally before running lint checks, or run `make test` and `make build-local` when only validation without lint is possible in constrained environments.
+- **Historical CI failure (`stat .../cmd/lambda: directory not found`)**: This came from an older workflow command that tried to build `./cmd/lambda`. Current workflow correctly uses `make build-arm64`, so keep workflow builds aligned with repository layout rooted at `main.go`.
